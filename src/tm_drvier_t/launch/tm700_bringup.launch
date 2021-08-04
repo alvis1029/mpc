@@ -23,6 +23,11 @@
   -->
   <!-- tm robot model (this description considers the robot arm with respect to a world frame located at the base)--> 
 
+  <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
+  <!--group ns="tm_robot_description_kinematics">
+    <rosparam command="load" file="$(find tm700_moveit_config)/config/kinematics.yaml"/>
+  </group-->
+
   <!-- tm common -->
   <include file="$(find tm_driver_t)/launch/tm_common.launch">
     <arg name="prefix"  value="$(arg prefix)" />

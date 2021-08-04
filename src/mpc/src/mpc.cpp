@@ -679,7 +679,7 @@ void ModelPredictiveControl::obstacles_detection_callback(const std_msgs::Float6
     {
         try
         {
-            listener.lookupTransform("/base_link", "/depth_camera_1_depth_optical_frame", ros::Time(0), camera_tf);
+            // listener.lookupTransform("/base_link", "/depth_camera_1_depth_optical_frame", ros::Time(0), camera_tf);
 	        listener.lookupTransform("/odom", "/base_footprint", ros::Time(0), current_mobile_platform_pose);
             break;
         }
@@ -1335,7 +1335,8 @@ void ModelPredictiveControl::performReplenishment()
     	}
     }
 
-    obstacles_detection_enable = false;
+    //obstacles_detection_enable = false;
+    obstacles_detection_enable = true;
     dec_factor = 1;
 
     //ros::Duration(8).sleep();
@@ -1350,14 +1351,44 @@ void ModelPredictiveControl::performReplenishment()
     }
     return;*/
 
-    detection_pose.setData(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(0.11, -0.25, 0.66))); 
+    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.12, -0.25, 0.55)))); 
     
-    if(!reachDesiredPose(detection_pose, false))
+    if(!reachDesiredPose(detection_pose, true))
     {
         ROS_INFO("Fail to reach the desired pose");
         stop();
         return;
     }
+
+    tf::TransformListener listener;
+    tf::StampedTransform tf_l;
+    std::string tf_l_name = "/tag_308";
+
+    static tf::TransformBroadcaster br;
+    tf::Transform tf_b;    
+    std::string tf_b_name = "/target_Coke";
+    
+
+    listener.waitForTransform("/base_link", tf_l_name, ros::Time(0), ros::Duration(3.0));
+    listener.lookupTransform("/base_link", tf_l_name, ros::Time(0), tf_l);
+
+    tf_b.setOrigin(tf::Vector3(0.5, 0, 0));
+    tf_b.setRotation(tf::Quaternion(-0.500, 0.500, 0.500, 0.500));
+    br.sendTransform(tf::StampedTransform(tf_b, ros::Time::now(), "/tag_308", tf_b_name));
+
+    listener.waitForTransform("/base_link", tf_b_name, ros::Time(0), ros::Duration(3.0));
+    listener.lookupTransform("/base_link", tf_b_name, ros::Time(0), tf_l);
+
+    // std::cout<<"Relative Pose"<<std::endl;
+    // std::cout<<"X: "<<tf_l.getOrigin().getX()<<std::endl;
+    // std::cout<<"Y: "<<tf_l.getOrigin().getY()<<std::endl;
+    // std::cout<<"Z: "<<tf_l.getOrigin().getZ()<<std::endl;
+
+
+    return;
+
+
+
 
     apriltag_detection_enable.data = true;
     apriltag_detection_cmd_pub.publish(apriltag_detection_enable);

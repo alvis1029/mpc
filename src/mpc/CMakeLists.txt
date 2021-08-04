@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   message_filters
 #  message_generation
+  detection_msgs
 )
 find_package(OsqpEigen)
 #find_package(realsense2 2.34.0)
