@@ -1372,7 +1372,7 @@ void ModelPredictiveControl::performReplenishment()
     listener.waitForTransform("/base_link", tf_l_name, ros::Time(0), ros::Duration(3.0));
     listener.lookupTransform("/base_link", tf_l_name, ros::Time(0), tf_l);
 
-    tf_b.setOrigin(tf::Vector3(0.5, 0, 0));
+    tf_b.setOrigin(tf::Vector3(0.00, 0.00, 0.37));
     tf_b.setRotation(tf::Quaternion(-0.500, 0.500, 0.500, 0.500));
     br.sendTransform(tf::StampedTransform(tf_b, ros::Time::now(), "/tag_308", tf_b_name));
 
@@ -1384,6 +1384,34 @@ void ModelPredictiveControl::performReplenishment()
     // std::cout<<"Y: "<<tf_l.getOrigin().getY()<<std::endl;
     // std::cout<<"Z: "<<tf_l.getOrigin().getZ()<<std::endl;
 
+    //place 2 mid
+    // detection_pose.setData(tf::Transform(tf::Transform(tf::Quaternion(0.497, -0.411, -0.468, 0.604), tf::Vector3(0.101, 0.052, 0.844)))); 
+    
+    // if(!reachDesiredPose(detection_pose, true))
+    // {
+    //     ROS_INFO("Fail to reach the desired pose");
+    //     stop();
+    //     return;
+    // }
+
+    // //place 2
+    // detection_pose.setData(tf::Transform(tf::Transform(tf::Quaternion(-0.46, 0.53, 0.52, 0.48), tf::Vector3(0.170, 0.129, 0.682)))); 
+    
+    // if(!reachDesiredPose(detection_pose, true))
+    // {
+    //     ROS_INFO("Fail to reach the desired pose");
+    //     stop();
+    //     return;
+    // }
+
+    detection_pose.setData(tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(tf_l.getOrigin().getX(), tf_l.getOrigin().getY(), tf_l.getOrigin().getZ())))); 
+    
+    if(!reachDesiredPose(detection_pose, true))
+    {
+        ROS_INFO("Fail to reach the desired pose");
+        stop();
+        return;
+    }
 
     return;
 
