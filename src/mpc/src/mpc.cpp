@@ -731,12 +731,12 @@ void ModelPredictiveControl::obstacles_detection_callback(const std_msgs::Float6
     }
     else if(obs_det_output.data[1] > 0.00001)
     {
-        if(desired_mobile_platform_position < mob_plat_position+obs_det_output.data[1] && desired_mobile_platform_position < 0.0-0.00001)
+        if(desired_mobile_platform_position < mob_plat_position+obs_det_output.data[1] && desired_mobile_platform_position < 0.3-0.00001) // 0.0
         {
             desired_mobile_platform_position = mob_plat_position+obs_det_output.data[1];
 
-            if(desired_mobile_platform_position >= 0.00)
-                desired_mobile_platform_position = 0.00;
+            if(desired_mobile_platform_position >= 0.3)  // 0.0
+                desired_mobile_platform_position = 0.3;  // 0.0
 
 	        starting_mobile_platform_position = mob_plat_position;
 
@@ -1339,139 +1339,181 @@ void ModelPredictiveControl::performReplenishment()
     obstacles_detection_enable = true;
     dec_factor = 1;
 
-    // GO TO SCAN TAG POSITION
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.12, -0.25, 0.55)))); 
-    
-    if(!reachDesiredPose(detection_pose, true))
+    while(0)
     {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
+        // GO TO SCAN TAG POSITION
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.12, -0.25, 0.55)))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        tf::TransformListener listener;
+        tf::StampedTransform tf_l;
+        std::string tf_l_name = "/tag_308";
+
+        static tf::TransformBroadcaster br;
+        tf::Transform tf_b;    
+        std::string tf_b_name = "/target_lemonade";
+        
+
+        listener.waitForTransform("/base_link", tf_l_name, ros::Time(0), ros::Duration(3.0));
+        listener.lookupTransform("/base_link", tf_l_name, ros::Time(0), tf_l);
+
+        tf_b.setOrigin(tf::Vector3(0.05, -0.07, 0.3421));
+        tf_b.setRotation(tf::Quaternion(-0.500, 0.500, 0.500, 0.500));
+        br.sendTransform(tf::StampedTransform(tf_b, ros::Time::now(), "/tag_308", tf_b_name));
+
+        listener.waitForTransform("/tm_base_link", tf_b_name, ros::Time(0), ros::Duration(3.0));
+        listener.lookupTransform("/tm_base_link", tf_b_name, ros::Time(0), tf_l);
+
+        // std::cout<<"Relative Pose"<<std::endl;
+        // std::cout<<"X: "<<tf_l.getOrigin().getX()<<std::endl;
+        // std::cout<<"Y: "<<tf_l.getOrigin().getY()<<std::endl;
+        // std::cout<<"Z: "<<tf_l.getOrigin().getZ()<<std::endl;
+
+        // GO TO MID POSITION
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.24, -0.15, 0.55)))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        //GO TO PLACE 1 MID
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.425, -0.436, -0.563, 0.559), tf::Vector3(-0.279, 0.123, 0.471)))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        //GO TO PLACE 1
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(-0.498, 0.506, 0.502, -0.493), tf::Vector3(-0.372, 0.122, 0.332)))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        gripper_cmd.data = true;
+        gripper_pub.publish(gripper_cmd);
+        sleep(1);
+
+        //GO TO PLACE 1 MID
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.425, -0.436, -0.563, 0.559), tf::Vector3(-0.279, 0.123, 0.471)))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        // GO TO MID POSITION
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.24, -0.15, 0.55)))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        // GO TO LEMONADE POSITION
+
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(tf_l.getOrigin().getX(), tf_l.getOrigin().getY()+0.05, tf_l.getOrigin().getZ()+0.05)))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(tf_l.getOrigin().getX(), tf_l.getOrigin().getY(), tf_l.getOrigin().getZ())))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        gripper_cmd.data = false;
+        gripper_pub.publish(gripper_cmd);
+        sleep(1);
+
+        // GO TO SCAN TAG POSITION
+
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(tf_l.getOrigin().getX(), tf_l.getOrigin().getY()+0.05, tf_l.getOrigin().getZ()+0.05)))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.12, -0.25, 0.55)))); 
+        
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
+
+        ROS_INFO("REPLENISHMENT FINISHED !!!");
     }
 
-    tf::TransformListener listener;
-    tf::StampedTransform tf_l;
-    std::string tf_l_name = "/tag_308";
-
-    static tf::TransformBroadcaster br;
-    tf::Transform tf_b;    
-    std::string tf_b_name = "/target_lemonade";
-    
-
-    listener.waitForTransform("/base_link", tf_l_name, ros::Time(0), ros::Duration(3.0));
-    listener.lookupTransform("/base_link", tf_l_name, ros::Time(0), tf_l);
-
-    tf_b.setOrigin(tf::Vector3(0.05, -0.07, 0.3421));
-    tf_b.setRotation(tf::Quaternion(-0.500, 0.500, 0.500, 0.500));
-    br.sendTransform(tf::StampedTransform(tf_b, ros::Time::now(), "/tag_308", tf_b_name));
-
-    listener.waitForTransform("/tm_base_link", tf_b_name, ros::Time(0), ros::Duration(3.0));
-    listener.lookupTransform("/tm_base_link", tf_b_name, ros::Time(0), tf_l);
-
-    // std::cout<<"Relative Pose"<<std::endl;
-    // std::cout<<"X: "<<tf_l.getOrigin().getX()<<std::endl;
-    // std::cout<<"Y: "<<tf_l.getOrigin().getY()<<std::endl;
-    // std::cout<<"Z: "<<tf_l.getOrigin().getZ()<<std::endl;
-
-    // GO TO MID POSITION
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.24, -0.15, 0.55)))); 
-    
-    if(!reachDesiredPose(detection_pose, true))
+    while(1)
     {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
-    }
-
-    //GO TO PLACE 1 MID
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.425, -0.436, -0.563, 0.559), tf::Vector3(-0.279, 0.123, 0.471)))); 
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.12, -0.25, 0.55)))); 
     
-    if(!reachDesiredPose(detection_pose, true))
-    {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
-    }
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
 
-    //GO TO PLACE 1
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(-0.498, 0.506, 0.502, -0.493), tf::Vector3(-0.372, 0.122, 0.332)))); 
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.12, -0.25, 0.67)))); 
     
-    if(!reachDesiredPose(detection_pose, true))
-    {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
-    }
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
 
-    gripper_cmd.data = true;
-    gripper_pub.publish(gripper_cmd);
-    sleep(1);
-
-    //GO TO PLACE 1 MID
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.425, -0.436, -0.563, 0.559), tf::Vector3(-0.279, 0.123, 0.471)))); 
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.12, -0.25, 0.41)))); 
     
-    if(!reachDesiredPose(detection_pose, true))
-    {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
-    }
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
 
-    // GO TO MID POSITION
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.24, -0.15, 0.55)))); 
+        detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.12, -0.25, 0.55)))); 
     
-    if(!reachDesiredPose(detection_pose, true))
-    {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
+        if(!reachDesiredPose(detection_pose, true))
+        {
+            ROS_INFO("Fail to reach the desired pose");
+            stop();
+            return;
+        }
     }
-
-    // GO TO LEMONADE POSITION
-
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(tf_l.getOrigin().getX(), tf_l.getOrigin().getY()+0.05, tf_l.getOrigin().getZ()+0.05)))); 
-    
-    if(!reachDesiredPose(detection_pose, true))
-    {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
-    }
-
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(tf_l.getOrigin().getX(), tf_l.getOrigin().getY(), tf_l.getOrigin().getZ())))); 
-    
-    if(!reachDesiredPose(detection_pose, true))
-    {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
-    }
-
-    gripper_cmd.data = false;
-    gripper_pub.publish(gripper_cmd);
-    sleep(1);
-
-    // GO TO SCAN TAG POSITION
-
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(tf_l.getOrigin().getX(), tf_l.getOrigin().getY()+0.05, tf_l.getOrigin().getZ()+0.05)))); 
-    
-    if(!reachDesiredPose(detection_pose, true))
-    {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
-    }
-
-    detection_pose.setData(base_tf*tf::Transform(tf::Transform(tf::Quaternion(0.7, 0, 0, 0.7), tf::Vector3(-0.12, -0.25, 0.55)))); 
-    
-    if(!reachDesiredPose(detection_pose, true))
-    {
-        ROS_INFO("Fail to reach the desired pose");
-        stop();
-        return;
-    }
-
-    ROS_INFO("REPLENISHMENT FINISHED !!!");
 
     return;
 
